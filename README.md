@@ -3,10 +3,10 @@
 A Claude Code mod that shows a live progress bar of your 5-hour usage limit in the prompt footer:
 
 ```
-5-hour 27% ━━━━━━━━━━ · resets 4:40 PM
+5h 27% ━━━━━━ ↻4:40PM
 ```
 
-The used part is blue and the rest is gray. It updates whenever your usage moves by a point, and once a minute. Hover the footer to see the reset time if it's cut off.
+The used part is blue and the rest is gray. It updates whenever your usage moves by a point, and once a minute. The ↻ time is when the window resets.
 
 The figure comes from the rate-limit info sent back with each Claude reply, so it appears after the first reply in a session, and only on a subscription plan (not an API key).
 

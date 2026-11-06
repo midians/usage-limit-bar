@@ -1,1 +1,1 @@
-{ "name": "usage-limit-bar", "version": "0.1.0", "description": "Live progress bar of the 5-hour usage limit, with time until reset" }
+{ "name": "usage-limit-bar", "version": "0.1.1", "description": "Live progress bar of the 5-hour usage limit, with time until reset" }

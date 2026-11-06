@@ -14,7 +14,7 @@ function resetLabel(resetsAt: string | undefined): string {
   const m = d.getMinutes()
   const ampm = h >= 12 ? 'PM' : 'AM'
   h = h % 12 || 12
-  return `resets ${h}:${String(m).padStart(2, '0')} ${ampm}`
+  return `↻${h}:${String(m).padStart(2, '0')}${ampm}`
 }
 
 export const register: Register = on => {
@@ -49,7 +49,8 @@ export const register: Register = on => {
     // the bar and percent always show; the reset time rides at the end, where
     // the footer's hover tooltip shows it whole.
     // A solid line like the Usage panel's: blue fill on a gray track.
-    const cells = 10
+    // Kept short so the whole bar, gray end included, fits before the cut.
+    const cells = 6
     const filled = pct > 0 ? Math.max(1, Math.round((pct / 100) * cells)) : 0
 
     // One Text with inline spans: separate Texts get spaces and wraps between them.
@@ -57,10 +58,10 @@ export const register: Register = on => {
       <Box flexDirection="row">
         <Text>
           {modes ? <Text dimColor>{modes} · </Text> : null}
-          {`5-hour ${shown}% `}
+          {`5h ${shown}% `}
           <Text color={FILL}>{'━'.repeat(filled)}</Text>
           <Text color={TRACK_TEXT}>{'━'.repeat(cells - filled)}</Text>
-          <Text dimColor>{reset ? ` · ${reset}` : ''}</Text>
+          <Text dimColor>{reset ? ` ${reset}` : ''}</Text>
         </Text>
       </Box>
     )
