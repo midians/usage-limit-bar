@@ -8,7 +8,7 @@ A Claude Code mod that shows a live progress bar of your 5-hour usage limit in t
 
 The used part is blue and the rest is gray. It updates whenever your usage moves by a point, and once a minute. The ↻ time is when the window resets.
 
-The figure comes from the rate-limit info sent back with each Claude reply, so it appears after the first reply in a session, and only on a subscription plan (not an API key).
+The figure comes from the rate-limit info sent back with each Claude reply. A session that has not had a reply yet shows the last figure any session saw (0% once that window has reset), so the bar is there from the start. It needs a subscription plan (not an API key).
 
 ## Install
 

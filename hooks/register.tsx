@@ -17,8 +17,19 @@ function resetLabel(resetsAt: string | undefined): string {
   return `↻${h}:${String(m).padStart(2, '0')}${ampm}`
 }
 
+// Where the last 5-hour figure is kept, shared by every session.
+const STORE_KEY = 'lastFiveHour'
+
+function asRateLimit(v: unknown): SessionRateLimit | undefined {
+  if (!v || typeof v !== 'object') return undefined
+  const r = v as Partial<SessionRateLimit>
+  if (typeof r.percentUsed !== 'number') return undefined
+  return { kind: 'five_hour', percentUsed: r.percentUsed, resetsAt: typeof r.resetsAt === 'string' ? r.resetsAt : undefined }
+}
+
 export const register: Register = on => {
   let tick: Timer | undefined
+  let lastSaved = ''
 
   on('session.start', async ($, e, next) => {
     void $.ui.close({ id: OLD_PANE })
@@ -37,13 +48,30 @@ export const register: Register = on => {
   // The prompt footer's mode line: the one slot by the prompt the desktop draws.
   on('ui.render', { component: 'SessionMode' }, async ($, e, next) => {
     const usage = await $.session.usage()
-    const win: SessionRateLimit | undefined = usage.rateLimits.find(r => r.kind === 'five_hour')
-    if (!win) return next(e)
+    const fresh: SessionRateLimit | undefined = usage.rateLimits.find(r => r.kind === 'five_hour')
+
+    // A session only learns its usage from Claude's replies, so a session just
+    // opened (or reopened after a restart) knows nothing yet. Remember the last
+    // figure any session saw, and show that until this one hears its own.
+    let win: SessionRateLimit | undefined = fresh
+    if (fresh) {
+      const key = `${fresh.percentUsed}|${fresh.resetsAt ?? ''}`
+      if (key !== lastSaved) {
+        lastSaved = key
+        void $.store.set(STORE_KEY, fresh)
+      }
+    } else {
+      win = asRateLimit(await $.store.get(STORE_KEY))
+      // The remembered window has since reset: nothing used in the new one yet.
+      if (win?.resetsAt && new Date(win.resetsAt).getTime() <= Date.now()) {
+        win = { kind: 'five_hour', percentUsed: 0 }
+      }
+    }
 
     const { Box, Text } = $.ui.resolve(e)
-    const pct = Math.max(0, Math.min(100, win.percentUsed))
-    const shown = Math.round(win.percentUsed)
-    const reset = resetLabel(win.resetsAt)
+    const pct = win ? Math.max(0, Math.min(100, win.percentUsed)) : 0
+    const shown = win ? `${Math.round(win.percentUsed)}%` : '–%'
+    const reset = resetLabel(win?.resetsAt)
     const modes = e.props.modes.join(' & ')
     // Short enough for the footer's room (about 22 characters before it cuts):
     // the bar and percent always show; the reset time rides at the end, where
@@ -58,7 +86,7 @@ export const register: Register = on => {
       <Box flexDirection="row">
         <Text>
           {modes ? <Text dimColor>{modes} · </Text> : null}
-          {`5h ${shown}% `}
+          {`5h ${shown} `}
           <Text color={FILL}>{'━'.repeat(filled)}</Text>
           <Text color={TRACK_TEXT}>{'━'.repeat(cells - filled)}</Text>
           <Text dimColor>{reset ? ` ${reset}` : ''}</Text>
