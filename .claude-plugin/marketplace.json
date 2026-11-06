@@ -1,0 +1,5 @@
+{
+  "name": "usage-limit-bar",
+  "owner": { "name": "midians" },
+  "plugins": [{ "name": "usage-limit-bar", "source": "./" }]
+}
